@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>사원소설 통합 시뮬레이션</title>
+  <style>
+    :root {
+      --border: rgba(127,127,127,.35);
+      --bg: #fafafa;
+      --card: #ffffff;
+      --muted: rgba(127,127,127,.06);
+      --muted2: rgba(127,127,127,.04);
+      --text: #111;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1020px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+    h1 {
+      font-size: 28px;
+      margin: 0;
+    }
+    h2 {
+      font-size: 22px;
+      margin: 0;
+    }
+    h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      background: var(--card);
+      box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    }
+    .round {
+      display: grid;
+      gap: 16px;
+      scroll-margin-top: 20px;
+    }
+    .round-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .goal {
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    .small {
+      font-size: 13px;
+      opacity: .8;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .nav a {
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: var(--muted);
+      font-size: 14px;
+    }
+    .inv {
+      display: grid;
+      gap: 8px;
+    }
+    .inv.cols5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .pill {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      background: var(--muted2);
+    }
+    .resource-fire { background: #ffe5e5; border-color: rgba(198, 40, 40, .25); }
+    .resource-air { background: #e8f7ff; border-color: rgba(79, 195, 247, .30); }
+    .resource-water { background: #e8eeff; border-color: rgba(30, 136, 229, .28); }
+    .resource-dirt { background: #f3e6d8; border-color: rgba(141, 110, 99, .28); }
+    .resource-plant { background: #e8f6e8; border-color: rgba(67, 160, 71, .28); }
+    .resource-coin { background: #f2f2f2; border-color: rgba(120, 120, 120, .28); }
+    .resource-gold { background: #fff6cf; border-color: rgba(212, 175, 55, .34); }
+    .btns {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .actions,
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .inline-row {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+    .inline-row span {
+      white-space: nowrap;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      background: var(--muted);
+      text-align: left;
+      font-size: 14px;
+      color: inherit;
+    }
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+    input[type="number"] {
+      width: 96px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(127,127,127,.05);
+      color: inherit;
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+    }
+    .row label {
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+    .err {
+      color: #c62828;
+      min-height: 20px;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+    .status,
+    .score {
+      font-weight: 700;
+      margin-top: 10px;
+    }
+    .hidden { display: none; }
+    .done,
+    .congrats {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(127,127,127,.05);
+      line-height: 1.5;
+    }
+    .submit-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .submit-pill {
+      min-width: 190px;
+    }
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(127,127,127,.35), transparent);
+      margin: 8px 0;
+    }
+    @media (max-width: 720px) {
+      .inv.cols5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="round" id="round1">
+      <div class="card">
+        <h2>1라운드</h2>
+        <div class="goal">목표물질: gold</div>
+      </div>
+
+      <div class="card">
+        <h3>현재 보유량</h3>
+        <div class="inv cols5" data-role="inv"></div>
+        <div class="submit-controls">
+          <div class="pill resource-gold submit-pill"><span>제출된 gold의 수</span><b data-role="submittedGold">0</b></div>
+          <button data-role="submitGoldBtn">gold 제출하기</button>
+          <button data-role="submitAllGoldBtn">모든 gold 제출하기</button>
+        </div>
+        <div class="err" data-role="err"></div>
+        <div class="status hidden" data-role="liveScore"></div>
+      </div>
+
+      <div class="card">
+        <h3>조합 종료</h3>
+        <div class="actions">
+          <button data-role="endBtn">조합 종료</button>
+          <button data-role="resetBtn" class="hidden">초기화</button>
+        </div>
+        <div class="status hidden" data-role="finalScore"></div>
+        <div class="done hidden" data-role="doneMsg"></div>
+        <div class="congrats hidden" data-role="congrats"></div>
+      </div>
+
+      <div class="card">
+        <h3>조합</h3>
+        <div class="btns">
+          <button data-role="t1">① fire + air + water -> air + dirt + water</button>
+          <button data-role="t2">② fire + air + dirt -> fire + dirt + water</button>
+          <button data-role="t3">③ air + dirt + water -> fire + air + water</button>
+          <button data-role="t4">④ fire + dirt + water -> fire + air + dirt</button>
+          <button data-role="t5">⑤ fire + dirt -> gold</button>
+          <button data-role="t6">⑥ air + water -> gold</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="round" id="round2">
+      <div class="card">
+        <h2>2라운드</h2>
+        <div class="goal">목표물질: gold</div>
+        <div class="small">X는 현재 보유한 air의 개수입니다.</div>
+      </div>
+
+      <div class="card">
+        <h3>현재 보유량</h3>
+        <div class="inv cols5" data-role="inv"></div>
+        <div class="submit-controls">
+          <div class="pill resource-gold submit-pill"><span>제출된 gold의 수</span><b data-role="submittedGold">0</b></div>
+          <button data-role="submitGoldBtn">gold 제출하기</button>
+          <button data-role="submitAllGoldBtn">모든 gold 제출하기</button>
+        </div>
+        <div class="err" data-role="err"></div>
+        <div class="status hidden" data-role="liveScore"></div>
+      </div>
+
+      <div class="card">
+        <h3>조합 종료</h3>
+        <div class="actions">
+          <button data-role="endBtn">조합 종료</button>
+          <button data-role="resetBtn" class="hidden">초기화</button>
+        </div>
+        <div class="score hidden" data-role="score"></div>
+        <div class="done hidden" data-role="doneMsg"></div>
+        <div class="congrats hidden" data-role="congrats"></div>
+      </div>
+
+      <div class="card">
+        <h3>조합</h3>
+        <div class="btns">
+          <button data-role="t1">① 2 * gold + 2 * fire -> 26 * air + water + fire</button>
+          <button data-role="t2">② X * air + water + plant -> 3X * air</button>
+          <button data-role="t3">③ X * air + water -> 2X * air</button>
+          <button data-role="t4">④ 28 * air -> plant</button>
+          <button data-role="t5">⑤ 32 * air -> gold</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="round" id="round3">
+      <div class="card">
+        <h2>3라운드</h2>
+        <div class="goal">목표물질: gold</div>
+        <div class="small">K는 각 교환에서 입력하는 1 이상의 정수입니다. ②는 총 2번만 사용할 수 있습니다.</div>
+      </div>
+
+      <div class="card">
+        <h3>현재 보유량</h3>
+        <div class="inv cols5" data-role="inv"></div>
+        <div class="small" data-role="coinInfo"></div>
+        <div class="submit-controls">
+          <div class="pill resource-gold submit-pill"><span>제출된 gold의 수</span><b data-role="submittedGold">0</b></div>
+          <button data-role="submitGoldBtn">gold 제출하기</button>
+          <button data-role="submitAllGoldBtn">모든 gold 제출하기</button>
+        </div>
+        <div class="err" data-role="err"></div>
+        <div class="status hidden" data-role="liveScore"></div>
+      </div>
+
+      <div class="card">
+        <h3>조합 종료</h3>
+        <div class="row">
+          <button data-role="endBtn">조합 종료</button>
+          <button data-role="resetBtn" class="hidden">초기화</button>
+        </div>
+        <div class="status hidden" data-role="finalScore"></div>
+        <div class="done hidden" data-role="doneMsg"></div>
+        <div class="congrats hidden" data-role="congrats"></div>
+      </div>
+
+      <div class="card">
+        <h3>조합</h3>
+        <div class="btns">
+          <button data-role="t1">① dirt -> 3 * fire</button>
+          <button data-role="t2">② fire -> coin</button>
+          <div class="row">
+            <label>K (③)
+              <input data-role="k3" type="number" min="1" step="1" value="1" />
+            </label>
+            <button data-role="t3">③ K * fire + coin -> K * air</button>
+            <button data-role="t3max">③ 최대 구매</button>
+          </div>
+          <div class="row">
+            <label>K (④)
+              <input data-role="k4" type="number" min="1" step="1" value="1" />
+            </label>
+            <button data-role="t4">④ K * fire + air -> K * gold</button>
+            <button data-role="t4max">④ 최대 구매</button>
+          </div>
+          <div class="row">
+            <label>K (⑤)
+              <input data-role="k5" type="number" min="1" step="1" value="1" />
+            </label>
+            <button data-role="t5">⑤ 5K * gold -> 6K * fire</button>
+            <button data-role="t5max">⑤ 최대 구매</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="card congrats hidden" id="allRoundsCongrats"></div>
+  </div>
+
+  <script>
+    (() => {
+      function q(root, role) {
+        return root.querySelector(`[data-role="${role}"]`);
+      }
+
+      const allRoundsCongrats = document.getElementById("allRoundsCongrats");
+      const roundEnded = { 1: false, 2: false, 3: false };
+      const roundSignatures = { 1: "", 2: "", 3: "" };
+      const encIvB64 = "2NJNFnak/uupel7s";
+      const encCtB64 = "/vllzYnNfhpbP3l9Ya/vkyVx8lopMLy23kdxsjrROiExiqznFopw/K0fhXR3sgxpG1amhJfvIdg7GWuZYnIVXVOwZ6+pyBaIQlaN0/wdX0WqBS34I/l1hlOiZhEp+Jup5c8OHmAh5Lw5X4DaY7X1/7cAzNlSjXF6vZaNR4RY3S00";
+
+      function b64ToBytes(b64) {
+        const raw = atob(b64);
+        const out = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i += 1) out[i] = raw.charCodeAt(i);
+        return out;
+      }
+
+      async function refreshFinalReveal() {
+        allRoundsCongrats.classList.add("hidden");
+        allRoundsCongrats.textContent = "";
+        if (!(roundEnded[1] && roundEnded[2] && roundEnded[3])) return;
+        try {
+          const seed = `${roundSignatures[1]}||${roundSignatures[2]}||${roundSignatures[3]}||v1|saweonsoseol`;
+          const seedBytes = new TextEncoder().encode(seed);
+          const hash = await crypto.subtle.digest("SHA-256", seedBytes);
+          const key = await crypto.subtle.importKey("raw", hash, { name: "AES-GCM" }, false, ["decrypt"]);
+          const plainBuffer = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: b64ToBytes(encIvB64) },
+            key,
+            b64ToBytes(encCtB64)
+          );
+          allRoundsCongrats.textContent = new TextDecoder().decode(plainBuffer);
+          allRoundsCongrats.classList.remove("hidden");
+        } catch (err) {
+          allRoundsCongrats.classList.add("hidden");
+          allRoundsCongrats.textContent = "";
+        }
+      }
+
+      function updateRoundProof(round, ended, signature) {
+        roundEnded[round] = !!ended;
+        roundSignatures[round] = signature;
+        refreshFinalReveal();
+      }
+
+      function initRound1(root) {
+        const initial = { fire: 4, air: 1, water: 3, dirt: 0, gold: 0 };
+        const order = ["fire", "air", "water", "dirt", "gold"];
+        let inv = { ...initial };
+        let submittedGold = 0;
+        let ended = false;
+
+        const invDiv = q(root, "inv");
+        const errDiv = q(root, "err");
+        const finalScoreDiv = q(root, "finalScore");
+        const submittedGoldDiv = q(root, "submittedGold");
+        const submitGoldBtn = q(root, "submitGoldBtn");
+        const submitAllGoldBtn = q(root, "submitAllGoldBtn");
+        const doneMsgDiv = q(root, "doneMsg");
+        const congratsDiv = q(root, "congrats");
+        const endBtn = q(root, "endBtn");
+        const resetBtn = q(root, "resetBtn");
+
+        const trades = [
+          { role: "t1", cost: { fire: 1, air: 1, water: 1 }, gain: { air: 1, dirt: 1, water: 1 } },
+          { role: "t2", cost: { fire: 1, air: 1, dirt: 1 }, gain: { fire: 1, dirt: 1, water: 1 } },
+          { role: "t3", cost: { air: 1, dirt: 1, water: 1 }, gain: { fire: 1, air: 1, water: 1 } },
+          { role: "t4", cost: { fire: 1, dirt: 1, water: 1 }, gain: { fire: 1, air: 1, dirt: 1 } },
+          { role: "t5", cost: { fire: 1, dirt: 1 }, gain: { gold: 1 } },
+          { role: "t6", cost: { air: 1, water: 1 }, gain: { gold: 1 } }
+        ];
+
+        function can(cost) {
+          for (const k in cost) {
+            if ((inv[k] ?? 0) < cost[k]) return false;
+          }
+          return true;
+        }
+
+        function apply(cost, gain) {
+          if (ended) return false;
+          errDiv.textContent = "";
+          if (!can(cost)) {
+            errDiv.textContent = "보유량이 부족합니다.";
+            return false;
+          }
+          for (const k in cost) inv[k] -= cost[k];
+          for (const k in gain) inv[k] = (inv[k] ?? 0) + gain[k];
+          render();
+          return true;
+        }
+
+        function submitGold(count) {
+          if (ended) return false;
+          errDiv.textContent = "";
+          if (inv.gold < count) {
+            errDiv.textContent = "제출할 gold가 없습니다.";
+            return false;
+          }
+          inv.gold -= count;
+          submittedGold += count;
+          render();
+          return true;
+        }
+
+        function score() {
+          const nonGold = inv.fire + inv.air + inv.water + inv.dirt;
+          return submittedGold - Math.max(nonGold - 1, 0) * 2;
+        }
+
+        function signature() {
+          return `R1|${submittedGold}|${inv.fire}|${inv.air}|${inv.water}|${inv.dirt}|${inv.gold}`;
+        }
+
+        function anyPossibleTrade() {
+          return trades.some(trade => can(trade.cost));
+        }
+
+        function updateButtons() {
+          for (const trade of trades) {
+            q(root, trade.role).disabled = ended || !can(trade.cost);
+          }
+          submitGoldBtn.disabled = ended || inv.gold < 1;
+          submitAllGoldBtn.disabled = ended || inv.gold < 1;
+        }
+
+        function updateEndUI() {
+          if (!ended) {
+            finalScoreDiv.classList.add("hidden");
+            doneMsgDiv.classList.add("hidden");
+            congratsDiv.classList.add("hidden");
+            resetBtn.classList.add("hidden");
+            endBtn.disabled = false;
+            updateRoundProof(1, false, signature());
+            return;
+          }
+
+          finalScoreDiv.textContent = `최종 점수 = ${score()}`;
+          finalScoreDiv.classList.remove("hidden");
+
+          if (anyPossibleTrade()) {
+            doneMsgDiv.textContent = "가능한 조합이 더 존재합니다.";
+          } else {
+            doneMsgDiv.textContent = "가능한 조합이 더 존재하지 않습니다.";
+          }
+          doneMsgDiv.classList.remove("hidden");
+
+          congratsDiv.classList.add("hidden");
+
+          resetBtn.classList.remove("hidden");
+          endBtn.disabled = true;
+          updateRoundProof(1, true, signature());
+        }
+
+        function render() {
+          invDiv.innerHTML = "";
+          for (const key of order) {
+            const d = document.createElement("div");
+            d.className = `pill resource-${key}`;
+            d.innerHTML = `<span>${key}</span><b>${inv[key]}</b>`;
+            invDiv.appendChild(d);
+          }
+          submittedGoldDiv.textContent = String(submittedGold);
+          updateButtons();
+          updateEndUI();
+        }
+
+        q(root, "t1").onclick = () => apply({ fire: 1, air: 1, water: 1 }, { air: 1, dirt: 1, water: 1 });
+        q(root, "t2").onclick = () => apply({ fire: 1, air: 1, dirt: 1 }, { fire: 1, dirt: 1, water: 1 });
+        q(root, "t3").onclick = () => apply({ air: 1, dirt: 1, water: 1 }, { fire: 1, air: 1, water: 1 });
+        q(root, "t4").onclick = () => apply({ fire: 1, dirt: 1, water: 1 }, { fire: 1, air: 1, dirt: 1 });
+        q(root, "t5").onclick = () => apply({ fire: 1, dirt: 1 }, { gold: 1 });
+        q(root, "t6").onclick = () => apply({ air: 1, water: 1 }, { gold: 1 });
+        submitGoldBtn.onclick = () => submitGold(1);
+        submitAllGoldBtn.onclick = () => submitGold(inv.gold);
+
+        endBtn.onclick = () => {
+          ended = true;
+          errDiv.textContent = "";
+          render();
+        };
+
+        resetBtn.onclick = () => {
+          inv = { ...initial };
+          submittedGold = 0;
+          ended = false;
+          errDiv.textContent = "";
+          render();
+        };
+
+        render();
+      }
+
+      function initRound2(root) {
+        const initial = { fire: 4, air: 0, water: 0, plant: 0, gold: 4 };
+        let inv = { ...initial };
+        let submittedGold = 0;
+        let ended = false;
+
+        const invDiv = q(root, "inv");
+        const errDiv = q(root, "err");
+        const scoreDiv = q(root, "score");
+        const submittedGoldDiv = q(root, "submittedGold");
+        const submitGoldBtn = q(root, "submitGoldBtn");
+        const submitAllGoldBtn = q(root, "submitAllGoldBtn");
+        const doneMsgDiv = q(root, "doneMsg");
+        const congratsDiv = q(root, "congrats");
+        const endBtn = q(root, "endBtn");
+        const resetBtn = q(root, "resetBtn");
+
+        function can(cost) {
+          for (const k in cost) if ((inv[k] ?? 0) < cost[k]) return false;
+          return true;
+        }
+
+        function apply(cost, gain) {
+          if (ended) return;
+          errDiv.textContent = "";
+          if (!can(cost)) {
+            errDiv.textContent = "보유량 부족";
+            return;
+          }
+          for (const k in cost) inv[k] -= cost[k];
+          for (const k in gain) inv[k] = (inv[k] ?? 0) + gain[k];
+          render();
+        }
+
+        function submitGold(count) {
+          if (ended) return;
+          errDiv.textContent = "";
+          if (count < 1 || inv.gold < count) {
+            errDiv.textContent = "제출할 gold가 없습니다.";
+            return;
+          }
+          inv.gold -= count;
+          submittedGold += count;
+          render();
+        }
+
+        function anyPossible() {
+          const X = inv.air;
+          return (
+            can({ gold: 2, fire: 2 }) ||
+            (X > 0 && can({ water: 1, plant: 1 })) ||
+            (X > 0 && can({ water: 1 })) ||
+            can({ air: 28 }) ||
+            can({ air: 32 })
+          );
+        }
+
+        function score() {
+          const total = inv.fire + inv.air + inv.water + inv.plant;
+          return submittedGold - 2 * (total - 1);
+        }
+
+        function signature() {
+          return `R2|${submittedGold}|${inv.fire}|${inv.air}|${inv.water}|${inv.plant}|${inv.gold}`;
+        }
+
+        function updateEndUI() {
+          if (!ended) {
+            scoreDiv.classList.add("hidden");
+            doneMsgDiv.classList.add("hidden");
+            congratsDiv.classList.add("hidden");
+            resetBtn.classList.add("hidden");
+            endBtn.disabled = false;
+            updateRoundProof(2, false, signature());
+            return;
+          }
+
+          const s = score();
+          scoreDiv.textContent = `최종 점수 = ${s}`;
+          scoreDiv.classList.remove("hidden");
+
+          if (anyPossible()) {
+            doneMsgDiv.textContent = "가능한 조합이 더 존재합니다.";
+          } else {
+            doneMsgDiv.textContent = "가능한 조합이 더 존재하지 않습니다.";
+          }
+          doneMsgDiv.classList.remove("hidden");
+
+          congratsDiv.classList.add("hidden");
+
+          resetBtn.classList.remove("hidden");
+          endBtn.disabled = true;
+          updateRoundProof(2, true, signature());
+        }
+
+        function updateButtons() {
+          const X = inv.air;
+          const lock = ended;
+          q(root, "t1").disabled = lock || !can({ gold: 2, fire: 2 });
+          q(root, "t2").disabled = lock || !(X > 0 && can({ water: 1, plant: 1 }));
+          q(root, "t3").disabled = lock || !(X > 0 && can({ water: 1 }));
+          q(root, "t4").disabled = lock || !can({ air: 28 });
+          q(root, "t5").disabled = lock || !can({ air: 32 });
+          submitGoldBtn.disabled = lock || inv.gold < 1;
+          submitAllGoldBtn.disabled = lock || inv.gold < 1;
+        }
+
+        function render() {
+          invDiv.innerHTML = "";
+          const order = ["fire", "air", "water", "plant", "gold"];
+          for (const key of order) {
+            const d = document.createElement("div");
+            d.className = `pill resource-${key}`;
+            d.innerHTML = `<span>${key}</span><b>${inv[key]}</b>`;
+            invDiv.appendChild(d);
+          }
+          submittedGoldDiv.textContent = String(submittedGold);
+          updateButtons();
+          updateEndUI();
+        }
+
+        q(root, "t1").onclick = () => apply({ gold: 2, fire: 2 }, { air: 26, water: 1, fire: 1 });
+        q(root, "t2").onclick = () => {
+          const X = inv.air;
+          apply({ air: X, water: 1, plant: 1 }, { air: 3 * X });
+        };
+        q(root, "t3").onclick = () => {
+          const X = inv.air;
+          apply({ air: X, water: 1 }, { air: 2 * X });
+        };
+        q(root, "t4").onclick = () => apply({ air: 28 }, { plant: 1 });
+        q(root, "t5").onclick = () => apply({ air: 32 }, { gold: 1 });
+        submitGoldBtn.onclick = () => submitGold(1);
+        submitAllGoldBtn.onclick = () => submitGold(inv.gold);
+
+        endBtn.onclick = () => {
+          ended = true;
+          errDiv.textContent = "";
+          render();
+        };
+
+        resetBtn.onclick = () => {
+          inv = { ...initial };
+          submittedGold = 0;
+          ended = false;
+          errDiv.textContent = "";
+          render();
+        };
+
+        render();
+      }
+
+      function initRound3(root) {
+        const initial = { dirt: 8, fire: 0, coin: 0, air: 0, gold: 0 };
+        let inv = { ...initial };
+        let submittedGold = 0;
+        let ended = false;
+        let coinMade = 0;
+
+        const invDiv = q(root, "inv");
+        const coinInfo = q(root, "coinInfo");
+        const errDiv = q(root, "err");
+        const submittedGoldDiv = q(root, "submittedGold");
+        const submitGoldBtn = q(root, "submitGoldBtn");
+        const submitAllGoldBtn = q(root, "submitAllGoldBtn");
+        const endBtn = q(root, "endBtn");
+        const resetBtn = q(root, "resetBtn");
+        const finalScoreDiv = q(root, "finalScore");
+        const doneMsgDiv = q(root, "doneMsg");
+        const congratsDiv = q(root, "congrats");
+        const k3Input = q(root, "k3");
+        const k4Input = q(root, "k4");
+        const k5Input = q(root, "k5");
+
+        function score() {
+          const nonGold = inv.dirt + inv.fire + inv.coin + inv.air;
+          return submittedGold - Math.max(nonGold - 1, 0) * 2;
+        }
+
+        function signature() {
+          return `R3|${submittedGold}|${inv.fire}|${inv.air}|${inv.dirt}|${inv.coin}|${inv.gold}|${coinMade}`;
+        }
+
+        function canAnyTrade() {
+          if (inv.dirt >= 1) return true;
+          if (coinMade < 2 && inv.fire >= 1) return true;
+          if (inv.coin >= 1 && inv.fire >= 1) return true;
+          if (inv.air >= 1 && inv.fire >= 1) return true;
+          if (inv.gold >= 5) return true;
+          return false;
+        }
+
+        function can(cost) {
+          for (const k in cost) {
+            if ((inv[k] ?? 0) < cost[k]) return false;
+          }
+          return true;
+        }
+
+        function apply(cost, gain) {
+          if (ended) return false;
+          errDiv.textContent = "";
+          if (!can(cost)) {
+            errDiv.textContent = "보유량 부족";
+            return false;
+          }
+          for (const k in cost) inv[k] -= cost[k];
+          for (const k in gain) inv[k] = (inv[k] ?? 0) + gain[k];
+          render();
+          return true;
+        }
+
+        function submitGold(count) {
+          if (ended) return false;
+          errDiv.textContent = "";
+          if (count < 1 || inv.gold < count) {
+            errDiv.textContent = "제출할 gold가 없습니다.";
+            return false;
+          }
+          inv.gold -= count;
+          submittedGold += count;
+          render();
+          return true;
+        }
+
+        function readPositiveInt(input) {
+          const v = Number(input.value);
+          if (!Number.isFinite(v)) return null;
+          const n = Math.floor(v);
+          return n >= 1 ? n : null;
+        }
+
+        function maxK3() {
+          return inv.coin >= 1 ? inv.fire : 0;
+        }
+
+        function maxK4() {
+          return inv.air >= 1 ? inv.fire : 0;
+        }
+
+        function maxK5() {
+          return Math.floor(inv.gold / 5);
+        }
+
+        function updateButtons() {
+          const lock = ended;
+          const k3 = readPositiveInt(k3Input);
+          const k4 = readPositiveInt(k4Input);
+          const k5 = readPositiveInt(k5Input);
+          const m3 = maxK3();
+          const m4 = maxK4();
+          const m5 = maxK5();
+
+          q(root, "t1").disabled = lock || inv.dirt < 1;
+          q(root, "t2").disabled = lock || !(coinMade < 2 && inv.fire >= 1);
+          q(root, "t3").disabled = lock || k3 === null || !(inv.coin >= 1 && inv.fire >= k3);
+          q(root, "t4").disabled = lock || k4 === null || !(inv.air >= 1 && inv.fire >= k4);
+          q(root, "t5").disabled = lock || k5 === null || inv.gold < 5 * k5;
+          q(root, "t3max").disabled = lock || m3 < 1;
+          q(root, "t4max").disabled = lock || m4 < 1;
+          q(root, "t5max").disabled = lock || m5 < 1;
+          submitGoldBtn.disabled = lock || inv.gold < 1;
+          submitAllGoldBtn.disabled = lock || inv.gold < 1;
+        }
+
+        function updateEndUI() {
+          if (!ended) {
+            finalScoreDiv.classList.add("hidden");
+            doneMsgDiv.classList.add("hidden");
+            congratsDiv.classList.add("hidden");
+            resetBtn.classList.add("hidden");
+            endBtn.disabled = false;
+            updateRoundProof(3, false, signature());
+            return;
+          }
+          const s = score();
+          finalScoreDiv.textContent = `최종 점수 = ${s}`;
+          finalScoreDiv.classList.remove("hidden");
+
+          if (canAnyTrade()) {
+            doneMsgDiv.textContent = "가능한 조합이 더 존재합니다.";
+          } else {
+            doneMsgDiv.textContent = "가능한 조합이 더 존재하지 않습니다.";
+          }
+          doneMsgDiv.classList.remove("hidden");
+
+          congratsDiv.classList.add("hidden");
+
+          resetBtn.classList.remove("hidden");
+          endBtn.disabled = true;
+          updateRoundProof(3, true, signature());
+        }
+
+        function render() {
+          invDiv.innerHTML = "";
+          const order = ["fire", "air", "dirt", "coin", "gold"];
+          for (const key of order) {
+            const d = document.createElement("div");
+            d.className = `pill resource-${key}`;
+            d.innerHTML = `<span>${key}</span><b>${inv[key]}</b>`;
+            invDiv.appendChild(d);
+          }
+          coinInfo.textContent = `② 사용 횟수: ${coinMade} / 2`;
+          submittedGoldDiv.textContent = String(submittedGold);
+          updateButtons();
+          updateEndUI();
+        }
+
+        q(root, "t1").onclick = () => apply({ dirt: 1 }, { fire: 3 });
+
+        q(root, "t2").onclick = () => {
+          if (ended) return;
+          errDiv.textContent = "";
+          if (!(coinMade < 2 && inv.fire >= 1)) {
+            errDiv.textContent = "조건 불충족";
+            return;
+          }
+          inv.fire -= 1;
+          inv.coin += 1;
+          coinMade += 1;
+          render();
+        };
+
+        q(root, "t3").onclick = () => {
+          const k = readPositiveInt(k3Input);
+          if (k === null) {
+            errDiv.textContent = "K는 1 이상의 정수";
+            return;
+          }
+          apply({ fire: k, coin: 1 }, { air: k });
+        };
+
+        q(root, "t3max").onclick = () => {
+          const k = maxK3();
+          if (k < 1) {
+            errDiv.textContent = "조건 불충족";
+            return;
+          }
+          k3Input.value = String(k);
+          apply({ fire: k, coin: 1 }, { air: k });
+        };
+
+        q(root, "t4").onclick = () => {
+          const k = readPositiveInt(k4Input);
+          if (k === null) {
+            errDiv.textContent = "K는 1 이상의 정수";
+            return;
+          }
+          apply({ fire: k, air: 1 }, { gold: k });
+        };
+
+        q(root, "t4max").onclick = () => {
+          const k = maxK4();
+          if (k < 1) {
+            errDiv.textContent = "조건 불충족";
+            return;
+          }
+          k4Input.value = String(k);
+          apply({ fire: k, air: 1 }, { gold: k });
+        };
+
+        q(root, "t5").onclick = () => {
+          const k = readPositiveInt(k5Input);
+          if (k === null) {
+            errDiv.textContent = "K는 1 이상의 정수";
+            return;
+          }
+          apply({ gold: 5 * k }, { fire: 6 * k });
+        };
+
+        q(root, "t5max").onclick = () => {
+          const k = maxK5();
+          if (k < 1) {
+            errDiv.textContent = "조건 불충족";
+            return;
+          }
+          k5Input.value = String(k);
+          apply({ gold: 5 * k }, { fire: 6 * k });
+        };
+
+        submitGoldBtn.onclick = () => submitGold(1);
+        submitAllGoldBtn.onclick = () => submitGold(inv.gold);
+
+        k3Input.addEventListener("input", updateButtons);
+        k4Input.addEventListener("input", updateButtons);
+        k5Input.addEventListener("input", updateButtons);
+
+        endBtn.onclick = () => {
+          ended = true;
+          errDiv.textContent = "";
+          render();
+        };
+
+        resetBtn.onclick = () => {
+          inv = { ...initial };
+          submittedGold = 0;
+          ended = false;
+          coinMade = 0;
+          errDiv.textContent = "";
+          render();
+        };
+
+        render();
+      }
+
+      initRound1(document.getElementById("round1"));
+      initRound2(document.getElementById("round2"));
+      initRound3(document.getElementById("round3"));
+    })();
+  </script>
+</body>
+</html>
